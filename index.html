@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aplikasi Penempel Pasfoto Transkrip Ijazah Otomatis</title>
+  <!-- Library PDF.js untuk membaca & render preview PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- Library pdf-lib untuk memodifikasi & menggabungkan foto ke PDF asli -->
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <style>
+    :root {
+      --primary: #0f766e;
+      --primary-dark: #115e59;
+      --secondary: #0284c7;
+      --accent: #eab308;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #1e293b;
+      --border: #cbd5e1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    /* Running Text Header */
+    .marquee-bar {
+      background: linear-gradient(90deg, var(--primary-dark), var(--secondary));
+      color: #ffffff;
+      padding: 6px 0;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 18px 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+
+    header p {
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+
+    .container {
+      max-width: 1360px;
+      margin: 20px auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 992px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 18px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      border: 1px solid var(--border);
+      margin-bottom: 18px;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      padding: 8px;
+      border: 1.5px dashed var(--secondary);
+      border-radius: 6px;
+      background: #f8fafc;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .slider-row {
+      display: grid;
+      grid-template-columns: 115px 1fr 52px;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 0.82rem;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary);
+    }
+
+    .val-badge {
+      background: #e2e8f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.78rem;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      margin-top: 8px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-dark);
+    }
+
+    .btn-secondary {
+      background: var(--secondary);
+      color: white;
+      margin-top: 8px;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #0369a1;
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      width: auto;
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    /* Daftar Siswa */
+    .student-list {
+      max-height: 360px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .student-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      gap: 10px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .student-item:hover {
+      background: #f8fafc;
+    }
+
+    .student-item.active {
+      background: #ecfdf5;
+      border-left: 4px solid var(--primary);
+    }
+
+    .student-info h4 {
+      font-size: 0.88rem;
+      color: #0f172a;
+    }
+
+    .student-info span {
+      font-size: 0.78rem;
+      color: #64748b;
+      display: block;
+    }
+
+    .photo-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .thumb-preview {
+      width: 34px;
+      height: 45px;
+      object-fit: cover;
+      border-radius: 3px;
+      border: 1px solid #94a3b8;
+      background: #e2e8f0;
+    }
+
+    .badge-ok {
+      background: #dcfce7;
+      color: #166534;
+      font-size: 0.72rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .badge-wait {
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 0.72rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    /* Area Preview Canvas */
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .canvas-wrapper {
+      background: #334155;
+      padding: 16px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      overflow: auto;
+      min-height: 680px;
+    }
+
+    canvas {
+      background: white;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      max-width: 100%;
+      height: auto;
+    }
+
+    .info-box {
+      background: #eff6ff;
+      border-left: 4px solid var(--secondary);
+      padding: 10px 12px;
+      font-size: 0.8rem;
+      color: #1e3a8a;
+      border-radius: 4px;
+      margin-bottom: 12px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 0.82rem;
+      color: #64748b;
+      border-top: 1px solid var(--border);
+      margin-top: 24px;
+      background: white;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="marquee-bar">
+    <marquee scrollamount="5">SISTEM OTOMATISASI PENEMPELAN PASFOTO SISWA PADA TRANSKRIP NILAI IJAZAH &bull; DETEKSI PRESISI TANDA TANGAN KEPALA SEKOLAH &bull; PROSES CEPAT LANGSUNG DI BROWSER</marquee>
+  </div>
+
+  <header>
+    <div>
+      <h1>E-Foto Transkrip Ijazah</h1>
+      <p>Tempel Pasfoto $3 \times 4\text{ cm}$ Otomatis di Samping Tanda Tangan Kepala Sekolah</p>
+    </div>
+    <div id="summaryStats" style="font-size: 0.85rem; background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 6px;">
+      Belum ada file PDF diunggah
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- PANEL KIRI: KONTROL & DAFTAR SISWA -->
+    <div>
+      <!-- 1. Unggah Dokumen -->
+      <div class="card">
+        <div class="card-title">1. Unggah Dokumen &amp; Foto</div>
+        <div class="form-group">
+          <label for="pdfInput">Pilih File PDF Transkrip Nilai (1 atau banyak halaman)</label>
+          <input type="file" id="pdfInput" accept="application/pdf">
+        </div>
+        <div class="form-group">
+          <label for="bulkPhotoInput">Unggah Foto Massal (Nama file = NISN, misal: 0112730890.jpg)</label>
+          <input type="file" id="bulkPhotoInput" accept="image/jpeg,image/png,image/webp" multiple disabled>
+        </div>
+        <div class="info-box">
+          <strong>Tips:</strong> Anda bisa mengunggah banyak foto sekaligus. Sistem otomatis mencocokkan nama file foto dengan <strong>NISN</strong> siswa, atau pilih manual pada daftar di bawah.
+        </div>
+      </div>
+
+      <!-- 2. Kalibrasi Posisi Foto -->
+      <div class="card">
+        <div class="card-title">
+          <span>2. Pengaturan Posisi &amp; Ukuran</span>
+          <button type="button" class="btn btn-secondary btn-sm" id="resetPosBtn" style="margin-top:0;">Reset Default</button>
+        </div>
+
+        <div class="slider-row">
+          <label>Geser Kiri/Kanan (X)</label>
+          <input type="range" id="offsetX" min="-300" max="150" value="-125">
+          <span class="val-badge" id="valX">-125</span>
+        </div>
+
+        <div class="slider-row">
+          <label>Geser Atas/Bawah (Y)</label>
+          <input type="range" id="offsetY" min="-150" max="150" value="-48">
+          <span class="val-badge" id="valY">-48</span>
+        </div>
+
+        <div class="slider-row">
+          <label>Lebar Foto (pt)</label>
+          <input type="range" id="photoWidth" min="50" max="140" value="85">
+          <span class="val-badge" id="valW">85</span>
+        </div>
+
+        <div class="slider-row">
+          <label>Tinggi Foto (pt)</label>
+          <input type="range" id="photoHeight" min="70" max="180" value="113">
+          <span class="val-badge" id="valH">113</span>
+        </div>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="drawBorder" checked>
+          <label for="drawBorder" style="margin-bottom:0; cursor:pointer;">Tampilkan bingkai garis tepi tipis pada foto</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="showPlaceholder" checked>
+          <label for="showPlaceholder" style="margin-bottom:0; cursor:pointer;">Tampilkan kotak panduan (3x4) jika foto belum diisi</label>
+        </div>
+      </div>
+
+      <!-- 3. Daftar Siswa Terdeteksi -->
+      <div class="card">
+        <div class="card-title">
+          <span>3. Daftar Peserta Didik</span>
+          <span id="matchedCount" style="font-size:0.8rem; color:var(--secondary);">0 / 0 Foto</span>
+        </div>
+        <div class="student-list" id="studentList">
+          <div style="padding: 20px; text-align: center; color: #94a3b8; font-size: 0.85rem;">
+            Unggah file PDF Transkrip untuk menampilkan daftar siswa secara otomatis.
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="downloadPdfBtn" style="margin-top: 14px;" disabled>
+          Unduh PDF Transkrip Lengkap
+        </button>
+      </div>
+    </div>
+
+    <!-- PANEL KANAN: LIVE PREVIEW -->
+    <div>
+      <div class="card">
+        <div class="preview-header">
+          <div>
+            <strong id="previewTitle" style="color: var(--primary-dark);">Pratinjau Dokumen (Live Preview)</strong>
+            <div id="anchorStatus" style="font-size: 0.8rem; color: #64748b;">Menunggu dokumen PDF...</div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="btn btn-secondary btn-sm" id="prevPageBtn" style="margin-top:0;" disabled>&laquo; Sebelumnya</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="nextPageBtn" style="margin-top:0;" disabled>Berikutnya &raquo;</button>
+          </div>
+        </div>
+
+        <div class="canvas-wrapper">
+          <canvas id="pdfPreviewCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2026 Aplikasi Penempel Pasfoto Transkrip Ijazah &bull; Pemrosesan Lokal 100% Aman di Browser Sekolah
+  </footer>
+
+  <script>
+    // Konfigurasi Worker PDF.js
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    // State Aplikasi
+    let rawPdfBytes = null;
+    let pdfJsDoc = null;
+    let currentPageNum = 1;
+    let studentsData = []; // { pageIndex, name, nisn, anchorX, anchorY, detected, photoDataUrl, photoType }
+
+    // Elemen DOM
+    const pdfInput = document.getElementById('pdfInput');
+    const bulkPhotoInput = document.getElementById('bulkPhotoInput');
+    const studentListEl = document.getElementById('studentList');
+    const previewCanvas = document.getElementById('pdfPreviewCanvas');
+    const ctx = previewCanvas.getContext('2d');
+    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
+    const prevPageBtn = document.getElementById('prevPageBtn');
+    const nextPageBtn = document.getElementById('nextPageBtn');
+    const previewTitle = document.getElementById('previewTitle');
+    const anchorStatus = document.getElementById('anchorStatus');
+    const summaryStats = document.getElementById('summaryStats');
+    const matchedCountEl = document.getElementById('matchedCount');
+
+    // Kontrol Slider
+    const offsetXInput = document.getElementById('offsetX');
+    const offsetYInput = document.getElementById('offsetY');
+    const photoWidthInput = document.getElementById('photoWidth');
+    const photoHeightInput = document.getElementById('photoHeight');
+    const drawBorderInput = document.getElementById('drawBorder');
+    const showPlaceholderInput = document.getElementById('showPlaceholder');
+    const resetPosBtn = document.getElementById('resetPosBtn');
+
+    // Muat pengaturan tersimpan dari localStorage jika ada
+    function loadSavedSettings() {
+      const saved = JSON.parse(localStorage.getItem('transkrip_photo_settings') || 'null');
+      if (saved) {
+        offsetXInput.value = saved.offsetX ?? -125;
+        offsetYInput.value = saved.offsetY ?? -48;
+        photoWidthInput.value = saved.width ?? 85;
+        photoHeightInput.value = saved.height ?? 113;
+      }
+      updateSliderBadges();
+    }
+
+    function saveSettings() {
+      localStorage.setItem('transkrip_photo_settings', JSON.stringify({
+        offsetX: Number(offsetXInput.value),
+        offsetY: Number(offsetYInput.value),
+        width: Number(photoWidthInput.value),
+        height: Number(photoHeightInput.value)
+      }));
+    }
+
+    function updateSliderBadges() {
+      document.getElementById('valX').textContent = offsetXInput.value;
+      document.getElementById('valY').textContent = offsetYInput.value;
+      document.getElementById('valW').textContent = photoWidthInput.value;
+      document.getElementById('valH').textContent = photoHeightInput.value;
+    }
+
+    [offsetXInput, offsetYInput, photoWidthInput, photoHeightInput].forEach(el => {
+      el.addEventListener('input', () => {
+        updateSliderBadges();
+        saveSettings();
+        if (pdfJsDoc) renderPreviewPage(currentPageNum);
+      });
+    });
+
+    [drawBorderInput, showPlaceholderInput].forEach(el => {
+      el.addEventListener('change', () => {
+        if (pdfJsDoc) renderPreviewPage(currentPageNum);
+      });
+    });
+
+    resetPosBtn.addEventListener('click', () => {
+      offsetXInput.value = -125;
+      offsetYInput.value = -48;
+      photoWidthInput.value = 85;
+      photoHeightInput.value = 113;
+      updateSliderBadges();
+      saveSettings();
+      if (pdfJsDoc) renderPreviewPage(currentPageNum);
+    });
+
+    // 1. Proses Unggah File PDF
+    pdfInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      summaryStats.textContent = 'Membaca struktur PDF...';
+      const arrayBuffer = await file.arrayBuffer();
+      rawPdfBytes = new Uint8Array(arrayBuffer);
+
+      const loadingTask = pdfjsLib.getDocument({ data: rawPdfBytes.slice() });
+      pdfJsDoc = await loadingTask.promise;
+
+      studentsData = [];
+      const totalPages = pdfJsDoc.numPages;
+
+      for (let i = 1; i <= totalPages; i++) {
+        const page = await pdfJsDoc.getPage(i);
+        const viewport = page.getViewport({ scale: 1.0 });
+        const textContent = await page.getTextContent();
+
+        let fullText = '';
+        let anchorX = viewport.width * 0.62; // Fallback default kanan bawah
+        let anchorY = 140; // Koordinat PDF dari bawah
+        let detected = false;
+
+        // Gabungkan teks & cari posisi "Kepala Sekolah"
+        for (const item of textContent.items) {
+          const str = item.str.trim();
+          fullText += item.str + ' ';
+
+          if (/kepala\s*sekolah/i.test(str)) {
+            // transform[4] adalah X, transform[5] adalah Y dari sudut kiri bawah PDF
+            anchorX = item.transform[4];
+            anchorY = item.transform[5];
+            detected = true;
+          }
+        }
+
+        // Ekstrak Nama Lengkap & NISN menggunakan Regex
+        const nameMatch = fullText.match(/Nama\s*Lengkap\s*:?\s*([A-Z0-9\s.,'`-]+?)(?=\s*Tempat|\s*Nomor|\s*NISN)/i);
+        const nisnMatch = fullText.match(/Nomor\s*Induk\s*Siswa\s*Nasional\s*:?\s*(\d{8,12})/i) ||
+                          fullText.match(/NISN\s*:?\s*(\d{8,12})/i);
+
+        const studentName = nameMatch ? nameMatch[1].trim() : `Siswa Halaman ${i}`;
+        const studentNisn = nisnMatch ? nisnMatch[1].trim() : `HAL-${i}`;
+
+        studentsData.push({
+          pageIndex: i - 1,
+          pageNum: i,
+          name: studentName,
+          nisn: studentNisn,
+          anchorX,
+          anchorY,
+          detected,
+          photoDataUrl: null,
+          photoType: null
+        });
+      }
+
+      currentPageNum = 1;
+      bulkPhotoInput.disabled = false;
+      downloadPdfBtn.disabled = false;
+      summaryStats.textContent = `Total: ${totalPages} Lembar Transkrip`;
+
+      renderStudentList();
+      await renderPreviewPage(1);
+    });
+
+    // 2. Unggah Foto Massal berdasarkan Nama File (NISN)
+    bulkPhotoInput.addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files);
+      if (!files.length || !studentsData.length) return;
+
+      let matched = 0;
+      for (const file of files) {
+        const baseName = file.name.replace(/\.[^/.]+$/, '').trim().toLowerCase();
+        // Cari siswa yang NISN-nya cocok dengan nama file
+        const targetStudent = studentsData.find(s =>
+          baseName.includes(s.nisn.toLowerCase()) ||
+          baseName === s.name.toLowerCase()
+        );
+
+        if (targetStudent) {
+          const dataUrl = await readFileAsDataURL(file);
+          targetStudent.photoDataUrl = dataUrl;
+          targetStudent.photoType = file.type;
+          matched++;
+        }
+      }
+
+      renderStudentList();
+      await renderPreviewPage(currentPageNum);
+      alert(`${matched} foto berhasil dicocokkan otomatis berdasarkan NISN!`);
+    });
+
+    function readFileAsDataURL(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Render Daftar Kartu Siswa
+    function renderStudentList() {
+      studentListEl.innerHTML = '';
+      let withPhoto = 0;
+
+      studentsData.forEach((student, idx) => {
+        if (student.photoDataUrl) withPhoto++;
+
+        const item = document.createElement('div');
+        item.className = `student-item ${student.pageNum === currentPageNum ? 'active' : ''}`;
+        item.onclick = (e) => {
+          if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
+            currentPageNum = student.pageNum;
+            renderStudentList();
+            renderPreviewPage(currentPageNum);
+          }
+        };
+
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'student-info';
+        infoDiv.innerHTML = `
+          <h4>${student.pageNum}. ${student.name}</h4>
+          <span>NISN: <strong>${student.nisn}</strong> &bull; ${student.detected ? 'Posisi TTD Terdeteksi' : 'Posisi Default'}</span>
+        `;
+
+        const statusDiv = document.createElement('div');
+        statusDiv.className = 'photo-status';
+
+        if (student.photoDataUrl) {
+          const img = document.createElement('img');
+          img.src = student.photoDataUrl;
+          img.className = 'thumb-preview';
+          statusDiv.appendChild(img);
+        }
+
+        const badge = document.createElement('span');
+        badge.className = student.photoDataUrl ? 'badge-ok' : 'badge-wait';
+        badge.textContent = student.photoDataUrl ? 'Siap' : 'Kosong';
+        statusDiv.appendChild(badge);
+
+        // Input file tersembunyi per siswa
+        const singleInput = document.createElement('input');
+        singleInput.type = 'file';
+        singleInput.accept = 'image/jpeg,image/png,image/webp';
+        singleInput.style.display = 'none';
+        singleInput.onchange = async (ev) => {
+          const f = ev.target.files[0];
+          if (!f) return;
+          student.photoDataUrl = await readFileAsDataURL(f);
+          student.photoType = f.type;
+          currentPageNum = student.pageNum;
+          renderStudentList();
+          await renderPreviewPage(currentPageNum);
+        };
+
+        const pickBtn = document.createElement('button');
+        pickBtn.type = 'button';
+        pickBtn.className = 'btn btn-secondary btn-sm';
+        pickBtn.style.marginTop = '0';
+        pickBtn.textContent = student.photoDataUrl ? 'Ganti' : 'Foto';
+        pickBtn.onclick = () => singleInput.click();
+
+        statusDiv.appendChild(singleInput);
+        statusDiv.appendChild(pickBtn);
+
+        item.appendChild(infoDiv);
+        item.appendChild(statusDiv);
+        studentListEl.appendChild(item);
+      });
+
+      matchedCountEl.textContent = `${withPhoto} / ${studentsData.length} Foto`;
+    }
+
+    // 3. Render Live Preview Halaman PDF + Overlay Pasfoto
+    async function renderPreviewPage(pageNum) {
+      if (!pdfJsDoc) return;
+      const page = await pdfJsDoc.getPage(pageNum);
+      const scale = 1.45; // Skala tampilan preview tajam
+      const viewport = page.getViewport({ scale });
+
+      previewCanvas.width = viewport.width;
+      previewCanvas.height = viewport.height;
+
+      await page.render({
+        canvasContext: ctx,
+        viewport: viewport
+      }).promise;
+
+      const student = studentsData[pageNum - 1];
+      const offX = Number(offsetXInput.value);
+      const offY = Number(offsetYInput.value);
+      const wPt = Number(photoWidthInput.value);
+      const hPt = Number(photoHeightInput.value);
+
+      // Koordinat PDF asli (origin kiri-bawah)
+      const pdfX = student.anchorX + offX;
+      const pdfY = student.anchorY + offY;
+
+      // Konversi koordinat PDF (kiri-bawah) ke Canvas HTML (kiri-atas)
+      const unscaledViewport = page.getViewport({ scale: 1.0 });
+      const canvasX = pdfX * scale;
+      const canvasY = (unscaledViewport.height - pdfY - hPt) * scale;
+      const canvasW = wPt * scale;
+      const canvasH = hPt * scale;
+
+      if (student.photoDataUrl) {
+        const img = new Image();
+        img.src = student.photoDataUrl;
+        await new Promise(res => { img.onload = res; });
+        ctx.drawImage(img, canvasX, canvasY, canvasW, canvasH);
+
+        if (drawBorderInput.checked) {
+          ctx.strokeStyle = '#1e293b';
+          ctx.lineWidth = 1.2;
+          ctx.strokeRect(canvasX, canvasY, canvasW, canvasH);
+        }
+      } else if (showPlaceholderInput.checked) {
+        ctx.save();
+        ctx.fillStyle = 'rgba(2, 132, 199, 0.14)';
+        ctx.fillRect(canvasX, canvasY, canvasW, canvasH);
+        ctx.strokeStyle = '#0284c7';
+        ctx.setLineDash([5, 4]);
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(canvasX, canvasY, canvasW, canvasH);
+
+        ctx.fillStyle = '#0369a1';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('AREA PASFOTO', canvasX + canvasW / 2, canvasY + canvasH / 2 - 4);
+        ctx.font = '11px sans-serif';
+        ctx.fillText('3 x 4 cm', canvasX + canvasW / 2, canvasY + canvasH / 2 + 12);
+        ctx.restore();
+      }
+
+      // Update info navigasi
+      previewTitle.textContent = `Halaman ${pageNum} dari ${pdfJsDoc.numPages} — ${student.name}`;
+      anchorStatus.textContent = student.detected
+        ? `Teks "Kepala Sekolah" terdeteksi otomatis pada koordinat X:${Math.round(student.anchorX)}, Y:${Math.round(student.anchorY)}`
+        : 'Teks "Kepala Sekolah" tidak terbaca, menggunakan posisi default.';
+
+      prevPageBtn.disabled = pageNum <= 1;
+      nextPageBtn.disabled = pageNum >= pdfJsDoc.numPages;
+    }
+
+    prevPageBtn.addEventListener('click', () => {
+      if (currentPageNum > 1) {
+        currentPageNum--;
+        renderStudentList();
+        renderPreviewPage(currentPageNum);
+      }
+    });
+
+    nextPageBtn.addEventListener('click', () => {
+      if (pdfJsDoc && currentPageNum < pdfJsDoc.numPages) {
+        currentPageNum++;
+        renderStudentList();
+        renderPreviewPage(currentPageNum);
+      }
+    });
+
+    // Helper: Konversi gambar apa saja (JPG/PNG/WebP) ke JPEG standar untuk pdf-lib
+    async function convertImageToJpegBytes(dataUrl) {
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise(res => { img.onload = res; });
+
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = img.width;
+      tempCanvas.height = img.height;
+      const tCtx = tempCanvas.getContext('2d');
+      tCtx.fillStyle = '#ffffff';
+      tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+      tCtx.drawImage(img, 0, 0);
+
+      const jpegDataUrl = tempCanvas.toDataURL('image/jpeg', 0.95);
+      const base64 = jpegDataUrl.split(',')[1];
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes;
+    }
+
+    // 4. Generate & Unduh PDF Final Beresolusi Asli
+    downloadPdfBtn.addEventListener('click', async () => {
+      if (!rawPdfBytes) return;
+
+      downloadPdfBtn.disabled = true;
+      downloadPdfBtn.textContent = 'Memproses PDF...';
+
+      try {
+        const { PDFDocument, rgb } = PDFLib;
+        const pdfDoc = await PDFDocument.load(rawPdfBytes);
+        const pages = pdfDoc.getPages();
+
+        const offX = Number(offsetXInput.value);
+        const offY = Number(offsetYInput.value);
+        const wPt = Number(photoWidthInput.value);
+        const hPt = Number(photoHeightInput.value);
+        const withBorder = drawBorderInput.checked;
+
+        for (let i = 0; i < studentsData.length; i++) {
+          const student = studentsData[i];
+          if (!student.photoDataUrl) continue;
+
+          const page = pages[student.pageIndex];
+          const jpegBytes = await convertImageToJpegBytes(student.photoDataUrl);
+          const embeddedImage = await pdfDoc.embedJpg(jpegBytes);
+
+          const x = student.anchorX + offX;
+          const y = student.anchorY + offY;
+
+          page.drawImage(embeddedImage, {
+            x: x,
+            y: y,
+            width: wPt,
+            height: hPt
+          });
+
+          if (withBorder) {
+            page.drawRectangle({
+              x: x,
+              y: y,
+              width: wPt,
+              height: hPt,
+              borderColor: rgb(0.15, 0.15, 0.15),
+              borderWidth: 0.75
+            });
+          }
+        }
+
+        const finalPdfBytes = await pdfDoc.save();
+        const blob = new Blob([finalPdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `TRANSKRIP_BERFOTO_${new Date().toISOString().slice(0,10)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error(err);
+        alert('Terjadi kesalahan saat memproses PDF: ' + err.message);
+      } finally {
+        downloadPdfBtn.disabled = false;
+        downloadPdfBtn.textContent = 'Unduh PDF Transkrip Lengkap';
+      }
+    });
+
+    // Inisialisasi awal
+    loadSavedSettings();
+  </script>
+</body>
+</html>
