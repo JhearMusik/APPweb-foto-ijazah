@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aplikasi Penempel Pasfoto Transkrip Ijazah Otomatis</title>
-  <!-- Library PDF.js untuk membaca & render preview PDF -->
+  <title>Aplikasi Penempel Tanda Tangan &amp; Cap Transkrip Ijazah</title>
+  <!-- Library PDF.js untuk render preview PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <!-- Library pdf-lib untuk memodifikasi & menggabungkan foto ke PDF asli -->
+  <!-- Library pdf-lib untuk modifikasi PDF asli -->
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <style>
     :root {
@@ -33,7 +33,6 @@
       line-height: 1.5;
     }
 
-    /* Running Text Header */
     .marquee-bar {
       background: linear-gradient(90deg, var(--primary-dark), var(--secondary));
       color: #ffffff;
@@ -65,11 +64,11 @@
     }
 
     .container {
-      max-width: 1360px;
+      max-width: 1400px;
       margin: 20px auto;
       padding: 0 16px;
       display: grid;
-      grid-template-columns: 420px 1fr;
+      grid-template-columns: 440px 1fr;
       gap: 20px;
     }
 
@@ -117,13 +116,13 @@
       border: 1.5px dashed var(--secondary);
       border-radius: 6px;
       background: #f8fafc;
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       cursor: pointer;
     }
 
     .slider-row {
       display: grid;
-      grid-template-columns: 115px 1fr 52px;
+      grid-template-columns: 125px 1fr 52px;
       align-items: center;
       gap: 8px;
       margin-bottom: 10px;
@@ -142,14 +141,6 @@
       text-align: center;
       font-weight: 700;
       font-size: 0.78rem;
-    }
-
-    .checkbox-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.85rem;
-      margin-top: 8px;
     }
 
     .btn {
@@ -199,7 +190,7 @@
 
     /* Daftar Siswa */
     .student-list {
-      max-height: 360px;
+      max-height: 320px;
       overflow-y: auto;
       border: 1px solid var(--border);
       border-radius: 6px;
@@ -236,15 +227,9 @@
       display: block;
     }
 
-    .photo-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
     .thumb-preview {
-      width: 34px;
-      height: 45px;
+      width: 32px;
+      height: 42px;
       object-fit: cover;
       border-radius: 3px;
       border: 1px solid #94a3b8;
@@ -287,7 +272,7 @@
       justify-content: center;
       align-items: flex-start;
       overflow: auto;
-      min-height: 680px;
+      min-height: 720px;
     }
 
     canvas {
@@ -321,13 +306,13 @@
 <body>
 
   <div class="marquee-bar">
-    <marquee scrollamount="5">SISTEM OTOMATISASI PENEMPELAN PASFOTO SISWA PADA TRANSKRIP NILAI IJAZAH &bull; DETEKSI PRESISI TANDA TANGAN KEPALA SEKOLAH &bull; PROSES CEPAT LANGSUNG DI BROWSER</marquee>
+    <marquee scrollamount="5">APLIKASI INTEGRASI FOTO SISWA, TANDA TANGAN KEPALA SEKOLAH, &amp; CAP SEKOLAH &bull; PRESISI OTOMATIS &bull; AMAN DI BROWSER</marquee>
   </div>
 
   <header>
     <div>
-      <h1>E-Foto Transkrip Ijazah</h1>
-      <p>Tempel Pasfoto $3 \times 4\text{ cm}$ Otomatis di Samping Tanda Tangan Kepala Sekolah</p>
+      <h1>E-Transkrip Ijazah &amp; Tanda Tangan Digital</h1>
+      <p>Penempelan Pasfoto, Tanda Tangan, dan Cap Sekolah Otomatis</p>
     </div>
     <div id="summaryStats" style="font-size: 0.85rem; background: rgba(255,255,255,0.15); padding: 6px 12px; border-radius: 6px;">
       Belum ada file PDF diunggah
@@ -335,66 +320,80 @@
   </header>
 
   <div class="container">
-    <!-- PANEL KIRI: KONTROL & DAFTAR SISWA -->
+    <!-- PANEL KIRI: KONTROL & PENGATURAN -->
     <div>
-      <!-- 1. Unggah Dokumen -->
+      <!-- 1. Dokumen & Tanda Tangan / Cap Global -->
       <div class="card">
-        <div class="card-title">1. Unggah Dokumen &amp; Foto</div>
+        <div class="card-title">1. Unggah PDF &amp; Atribut Kepala Sekolah</div>
+        
         <div class="form-group">
-          <label for="pdfInput">Pilih File PDF Transkrip Nilai (1 atau banyak halaman)</label>
+          <label for="pdfInput">File PDF Transkrip Nilai (1 atau Banyak Halaman)</label>
           <input type="file" id="pdfInput" accept="application/pdf">
         </div>
+
         <div class="form-group">
-          <label for="bulkPhotoInput">Unggah Foto Massal (Nama file = NISN, misal: 0112730890.jpg)</label>
+          <label for="sigInput">Tanda Tangan Kepala Sekolah (PNG Transparan)</label>
+          <input type="file" id="sigInput" accept="image/png,image/jpeg">
+        </div>
+
+        <div class="form-group">
+          <label for="stampInput">Cap / Stempel Sekolah (PNG Transparan)</label>
+          <input type="file" id="stampInput" accept="image/png,image/jpeg">
+        </div>
+
+        <div class="form-group">
+          <label for="bulkPhotoInput">Unggah Foto Siswa Massal (Nama file = NISN)</label>
           <input type="file" id="bulkPhotoInput" accept="image/jpeg,image/png,image/webp" multiple disabled>
         </div>
-        <div class="info-box">
-          <strong>Tips:</strong> Anda bisa mengunggah banyak foto sekaligus. Sistem otomatis mencocokkan nama file foto dengan <strong>NISN</strong> siswa, atau pilih manual pada daftar di bawah.
-        </div>
       </div>
 
-      <!-- 2. Kalibrasi Posisi Foto -->
+      <!-- 2. Kalibrasi Posisi Tanda Tangan & Cap -->
       <div class="card">
         <div class="card-title">
-          <span>2. Pengaturan Posisi &amp; Ukuran</span>
-          <button type="button" class="btn btn-secondary btn-sm" id="resetPosBtn" style="margin-top:0;">Reset Default</button>
+          <span>2. Kalibrasi Posisi TTD &amp; Cap</span>
+          <button type="button" class="btn btn-secondary btn-sm" id="resetSigPosBtn" style="margin-top:0;">Reset</button>
         </div>
 
         <div class="slider-row">
-          <label>Geser Kiri/Kanan (X)</label>
-          <input type="range" id="offsetX" min="-300" max="150" value="-125">
-          <span class="val-badge" id="valX">-125</span>
+          <label>Geser TTD X (Kiri/Kanan)</label>
+          <input type="range" id="sigOffsetX" min="-250" max="100" value="-55">
+          <span class="val-badge" id="valSigX">-55</span>
         </div>
 
         <div class="slider-row">
-          <label>Geser Atas/Bawah (Y)</label>
-          <input type="range" id="offsetY" min="-150" max="150" value="-48">
-          <span class="val-badge" id="valY">-48</span>
+          <label>Geser TTD Y (Atas/Bawah)</label>
+          <input type="range" id="sigOffsetY" min="-100" max="100" value="-12">
+          <span class="val-badge" id="valSigY">-12</span>
         </div>
 
         <div class="slider-row">
-          <label>Lebar Foto (pt)</label>
-          <input type="range" id="photoWidth" min="50" max="140" value="85">
-          <span class="val-badge" id="valW">85</span>
+          <label>Lebar TTD (pt)</label>
+          <input type="range" id="sigWidth" min="60" max="200" value="120">
+          <span class="val-badge" id="valSigW">120</span>
+        </div>
+
+        <hr style="border:0; border-top:1px solid #e2e8f0; margin:12px 0;">
+
+        <div class="slider-row">
+          <label>Geser Cap X</label>
+          <input type="range" id="stampOffsetX" min="-250" max="100" value="-90">
+          <span class="val-badge" id="valStampX">-90</span>
         </div>
 
         <div class="slider-row">
-          <label>Tinggi Foto (pt)</label>
-          <input type="range" id="photoHeight" min="70" max="180" value="113">
-          <span class="val-badge" id="valH">113</span>
+          <label>Geser Cap Y</label>
+          <input type="range" id="stampOffsetY" min="-100" max="100" value="-25">
+          <span class="val-badge" id="valStampY">-25</span>
         </div>
 
-        <div class="checkbox-row">
-          <input type="checkbox" id="drawBorder" checked>
-          <label for="drawBorder" style="margin-bottom:0; cursor:pointer;">Tampilkan bingkai garis tepi tipis pada foto</label>
-        </div>
-        <div class="checkbox-row">
-          <input type="checkbox" id="showPlaceholder" checked>
-          <label for="showPlaceholder" style="margin-bottom:0; cursor:pointer;">Tampilkan kotak panduan (3x4) jika foto belum diisi</label>
+        <div class="slider-row">
+          <label>Ukuran Cap / Lebar (pt)</label>
+          <input type="range" id="stampWidth" min="60" max="200" value="110">
+          <span class="val-badge" id="valStampW">110</span>
         </div>
       </div>
 
-      <!-- 3. Daftar Siswa Terdeteksi -->
+      <!-- 3. Daftar Siswa -->
       <div class="card">
         <div class="card-title">
           <span>3. Daftar Peserta Didik</span>
@@ -402,12 +401,12 @@
         </div>
         <div class="student-list" id="studentList">
           <div style="padding: 20px; text-align: center; color: #94a3b8; font-size: 0.85rem;">
-            Unggah file PDF Transkrip untuk menampilkan daftar siswa secara otomatis.
+            Silakan unggah file PDF Transkrip terlebih dahulu.
           </div>
         </div>
 
         <button type="button" class="btn btn-primary" id="downloadPdfBtn" style="margin-top: 14px;" disabled>
-          Unduh PDF Transkrip Lengkap
+          Unduh PDF Transkrip Lengkap (TTD + Cap + Foto)
         </button>
       </div>
     </div>
@@ -434,21 +433,22 @@
   </div>
 
   <footer>
-    &copy; 2026 Aplikasi Penempel Pasfoto Transkrip Ijazah &bull; Pemrosesan Lokal 100% Aman di Browser Sekolah
+    &copy; 2026 Aplikasi Transkrip Nilai Berbasis Web &bull; Pemrosesan Aman 100% di Client-Side
   </footer>
 
   <script>
-    // Konfigurasi Worker PDF.js
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    // State Aplikasi
     let rawPdfBytes = null;
     let pdfJsDoc = null;
     let currentPageNum = 1;
-    let studentsData = []; // { pageIndex, name, nisn, anchorX, anchorY, detected, photoDataUrl, photoType }
+    let studentsData = []; 
+    let signatureDataUrl = null;
+    let stampDataUrl = null;
 
-    // Elemen DOM
     const pdfInput = document.getElementById('pdfInput');
+    const sigInput = document.getElementById('sigInput');
+    const stampInput = document.getElementById('stampInput');
     const bulkPhotoInput = document.getElementById('bulkPhotoInput');
     const studentListEl = document.getElementById('studentList');
     const previewCanvas = document.getElementById('pdfPreviewCanvas');
@@ -461,68 +461,61 @@
     const summaryStats = document.getElementById('summaryStats');
     const matchedCountEl = document.getElementById('matchedCount');
 
-    // Kontrol Slider
-    const offsetXInput = document.getElementById('offsetX');
-    const offsetYInput = document.getElementById('offsetY');
-    const photoWidthInput = document.getElementById('photoWidth');
-    const photoHeightInput = document.getElementById('photoHeight');
-    const drawBorderInput = document.getElementById('drawBorder');
-    const showPlaceholderInput = document.getElementById('showPlaceholder');
-    const resetPosBtn = document.getElementById('resetPosBtn');
+    // Slider Kontrol TTD & Cap
+    const sigOffsetXInput = document.getElementById('sigOffsetX');
+    const sigOffsetYInput = document.getElementById('sigOffsetY');
+    const sigWidthInput = document.getElementById('sigWidth');
+    const stampOffsetXInput = document.getElementById('stampOffsetX');
+    const stampOffsetYInput = document.getElementById('stampOffsetY');
+    const stampWidthInput = document.getElementById('stampWidth');
+    const resetSigPosBtn = document.getElementById('resetSigPosBtn');
 
-    // Muat pengaturan tersimpan dari localStorage jika ada
-    function loadSavedSettings() {
-      const saved = JSON.parse(localStorage.getItem('transkrip_photo_settings') || 'null');
-      if (saved) {
-        offsetXInput.value = saved.offsetX ?? -125;
-        offsetYInput.value = saved.offsetY ?? -48;
-        photoWidthInput.value = saved.width ?? 85;
-        photoHeightInput.value = saved.height ?? 113;
-      }
-      updateSliderBadges();
+    function updateBadges() {
+      document.getElementById('valSigX').textContent = sigOffsetXInput.value;
+      document.getElementById('valSigY').textContent = sigOffsetYInput.value;
+      document.getElementById('valSigW').textContent = sigWidthInput.value;
+      document.getElementById('valStampX').textContent = stampOffsetXInput.value;
+      document.getElementById('valStampY').textContent = stampOffsetYInput.value;
+      document.getElementById('valStampW').textContent = stampWidthInput.value;
     }
 
-    function saveSettings() {
-      localStorage.setItem('transkrip_photo_settings', JSON.stringify({
-        offsetX: Number(offsetXInput.value),
-        offsetY: Number(offsetYInput.value),
-        width: Number(photoWidthInput.value),
-        height: Number(photoHeightInput.value)
-      }));
-    }
-
-    function updateSliderBadges() {
-      document.getElementById('valX').textContent = offsetXInput.value;
-      document.getElementById('valY').textContent = offsetYInput.value;
-      document.getElementById('valW').textContent = photoWidthInput.value;
-      document.getElementById('valH').textContent = photoHeightInput.value;
-    }
-
-    [offsetXInput, offsetYInput, photoWidthInput, photoHeightInput].forEach(el => {
+    [sigOffsetXInput, sigOffsetYInput, sigWidthInput, stampOffsetXInput, stampOffsetYInput, stampWidthInput].forEach(el => {
       el.addEventListener('input', () => {
-        updateSliderBadges();
-        saveSettings();
+        updateBadges();
         if (pdfJsDoc) renderPreviewPage(currentPageNum);
       });
     });
 
-    [drawBorderInput, showPlaceholderInput].forEach(el => {
-      el.addEventListener('change', () => {
-        if (pdfJsDoc) renderPreviewPage(currentPageNum);
-      });
-    });
-
-    resetPosBtn.addEventListener('click', () => {
-      offsetXInput.value = -125;
-      offsetYInput.value = -48;
-      photoWidthInput.value = 85;
-      photoHeightInput.value = 113;
-      updateSliderBadges();
-      saveSettings();
+    resetSigPosBtn.addEventListener('click', () => {
+      sigOffsetXInput.value = -55;
+      sigOffsetYInput.value = -12;
+      sigWidthInput.value = 120;
+      stampOffsetXInput.value = -90;
+      stampOffsetYInput.value = -25;
+      stampWidthInput.value = 110;
+      updateBadges();
       if (pdfJsDoc) renderPreviewPage(currentPageNum);
     });
 
-    // 1. Proses Unggah File PDF
+    // Upload Tanda Tangan
+    sigInput.addEventListener('change', async (e) => {
+      const f = e.target.files[0];
+      if (f) {
+        signatureDataUrl = await readFileAsDataURL(f);
+        if (pdfJsDoc) renderPreviewPage(currentPageNum);
+      }
+    });
+
+    // Upload Cap Sekolah
+    stampInput.addEventListener('change', async (e) => {
+      const f = e.target.files[0];
+      if (f) {
+        stampDataUrl = await readFileAsDataURL(f);
+        if (pdfJsDoc) renderPreviewPage(currentPageNum);
+      }
+    });
+
+    // Upload PDF
     pdfInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -543,41 +536,32 @@
         const textContent = await page.getTextContent();
 
         let fullText = '';
-        let anchorX = viewport.width * 0.62; // Fallback default kanan bawah
-        let anchorY = 140; // Koordinat PDF dari bawah
+        let anchorX = viewport.width * 0.62;
+        let anchorY = 140;
         let detected = false;
 
-        // Gabungkan teks & cari posisi "Kepala Sekolah"
         for (const item of textContent.items) {
-          const str = item.str.trim();
           fullText += item.str + ' ';
-
-          if (/kepala\s*sekolah/i.test(str)) {
-            // transform[4] adalah X, transform[5] adalah Y dari sudut kiri bawah PDF
+          if (/kepala\s*sekolah/i.test(item.str)) {
             anchorX = item.transform[4];
             anchorY = item.transform[5];
             detected = true;
           }
         }
 
-        // Ekstrak Nama Lengkap & NISN menggunakan Regex
         const nameMatch = fullText.match(/Nama\s*Lengkap\s*:?\s*([A-Z0-9\s.,'`-]+?)(?=\s*Tempat|\s*Nomor|\s*NISN)/i);
         const nisnMatch = fullText.match(/Nomor\s*Induk\s*Siswa\s*Nasional\s*:?\s*(\d{8,12})/i) ||
                           fullText.match(/NISN\s*:?\s*(\d{8,12})/i);
 
-        const studentName = nameMatch ? nameMatch[1].trim() : `Siswa Halaman ${i}`;
-        const studentNisn = nisnMatch ? nisnMatch[1].trim() : `HAL-${i}`;
-
         studentsData.push({
           pageIndex: i - 1,
           pageNum: i,
-          name: studentName,
-          nisn: studentNisn,
+          name: nameMatch ? nameMatch[1].trim() : `Siswa Halaman ${i}`,
+          nisn: nisnMatch ? nisnMatch[1].trim() : `HAL-${i}`,
           anchorX,
           anchorY,
           detected,
-          photoDataUrl: null,
-          photoType: null
+          photoDataUrl: null
         });
       }
 
@@ -590,7 +574,7 @@
       await renderPreviewPage(1);
     });
 
-    // 2. Unggah Foto Massal berdasarkan Nama File (NISN)
+    // Unggah Foto Massal (Berdasarkan NISN)
     bulkPhotoInput.addEventListener('change', async (e) => {
       const files = Array.from(e.target.files);
       if (!files.length || !studentsData.length) return;
@@ -598,23 +582,20 @@
       let matched = 0;
       for (const file of files) {
         const baseName = file.name.replace(/\.[^/.]+$/, '').trim().toLowerCase();
-        // Cari siswa yang NISN-nya cocok dengan nama file
         const targetStudent = studentsData.find(s =>
           baseName.includes(s.nisn.toLowerCase()) ||
           baseName === s.name.toLowerCase()
         );
 
         if (targetStudent) {
-          const dataUrl = await readFileAsDataURL(file);
-          targetStudent.photoDataUrl = dataUrl;
-          targetStudent.photoType = file.type;
+          targetStudent.photoDataUrl = await readFileAsDataURL(file);
           matched++;
         }
       }
 
       renderStudentList();
       await renderPreviewPage(currentPageNum);
-      alert(`${matched} foto berhasil dicocokkan otomatis berdasarkan NISN!`);
+      alert(`${matched} foto berhasil dicocokkan otomatis dengan NISN siswa!`);
     });
 
     function readFileAsDataURL(file) {
@@ -625,12 +606,11 @@
       });
     }
 
-    // Render Daftar Kartu Siswa
     function renderStudentList() {
       studentListEl.innerHTML = '';
       let withPhoto = 0;
 
-      studentsData.forEach((student, idx) => {
+      studentsData.forEach((student) => {
         if (student.photoDataUrl) withPhoto++;
 
         const item = document.createElement('div');
@@ -647,7 +627,7 @@
         infoDiv.className = 'student-info';
         infoDiv.innerHTML = `
           <h4>${student.pageNum}. ${student.name}</h4>
-          <span>NISN: <strong>${student.nisn}</strong> &bull; ${student.detected ? 'Posisi TTD Terdeteksi' : 'Posisi Default'}</span>
+          <span>NISN: <strong>${student.nisn}</strong></span>
         `;
 
         const statusDiv = document.createElement('div');
@@ -665,16 +645,14 @@
         badge.textContent = student.photoDataUrl ? 'Siap' : 'Kosong';
         statusDiv.appendChild(badge);
 
-        // Input file tersembunyi per siswa
         const singleInput = document.createElement('input');
         singleInput.type = 'file';
-        singleInput.accept = 'image/jpeg,image/png,image/webp';
+        singleInput.accept = 'image/*';
         singleInput.style.display = 'none';
         singleInput.onchange = async (ev) => {
           const f = ev.target.files[0];
           if (!f) return;
           student.photoDataUrl = await readFileAsDataURL(f);
-          student.photoType = f.type;
           currentPageNum = student.pageNum;
           renderStudentList();
           await renderPreviewPage(currentPageNum);
@@ -698,11 +676,11 @@
       matchedCountEl.textContent = `${withPhoto} / ${studentsData.length} Foto`;
     }
 
-    // 3. Render Live Preview Halaman PDF + Overlay Pasfoto
+    // Render Preview Halaman PDF + Posisi Pasfoto, TTD, dan Cap
     async function renderPreviewPage(pageNum) {
       if (!pdfJsDoc) return;
       const page = await pdfJsDoc.getPage(pageNum);
-      const scale = 1.45; // Skala tampilan preview tajam
+      const scale = 1.4;
       const viewport = page.getViewport({ scale });
 
       previewCanvas.width = viewport.width;
@@ -714,56 +692,64 @@
       }).promise;
 
       const student = studentsData[pageNum - 1];
-      const offX = Number(offsetXInput.value);
-      const offY = Number(offsetYInput.value);
-      const wPt = Number(photoWidthInput.value);
-      const hPt = Number(photoHeightInput.value);
-
-      // Koordinat PDF asli (origin kiri-bawah)
-      const pdfX = student.anchorX + offX;
-      const pdfY = student.anchorY + offY;
-
-      // Konversi koordinat PDF (kiri-bawah) ke Canvas HTML (kiri-atas)
       const unscaledViewport = page.getViewport({ scale: 1.0 });
-      const canvasX = pdfX * scale;
-      const canvasY = (unscaledViewport.height - pdfY - hPt) * scale;
-      const canvasW = wPt * scale;
-      const canvasH = hPt * scale;
+
+      // 1. Render Pasfoto (Default di Samping Kiri TTD)
+      // Menggunakan posisi standar di sebelah kiri blok ttd (-125 pt dari anchor Kepala Sekolah)
+      const photoX = (student.anchorX - 125) * scale;
+      const photoY = (unscaledViewport.height - student.anchorY - 113) * scale;
+      const photoW = 85 * scale;
+      const photoH = 113 * scale;
 
       if (student.photoDataUrl) {
         const img = new Image();
         img.src = student.photoDataUrl;
         await new Promise(res => { img.onload = res; });
-        ctx.drawImage(img, canvasX, canvasY, canvasW, canvasH);
-
-        if (drawBorderInput.checked) {
-          ctx.strokeStyle = '#1e293b';
-          ctx.lineWidth = 1.2;
-          ctx.strokeRect(canvasX, canvasY, canvasW, canvasH);
-        }
-      } else if (showPlaceholderInput.checked) {
-        ctx.save();
-        ctx.fillStyle = 'rgba(2, 132, 199, 0.14)';
-        ctx.fillRect(canvasX, canvasY, canvasW, canvasH);
+        ctx.drawImage(img, photoX, photoY, photoW, photoH);
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(photoX, photoY, photoW, photoH);
+      } else {
+        ctx.fillStyle = 'rgba(2, 132, 199, 0.12)';
+        ctx.fillRect(photoX, photoY, photoW, photoH);
         ctx.strokeStyle = '#0284c7';
-        ctx.setLineDash([5, 4]);
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(canvasX, canvasY, canvasW, canvasH);
-
+        ctx.setLineDash([4, 3]);
+        ctx.strokeRect(photoX, photoY, photoW, photoH);
+        ctx.setLineDash([]);
         ctx.fillStyle = '#0369a1';
-        ctx.font = 'bold 13px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('AREA PASFOTO', canvasX + canvasW / 2, canvasY + canvasH / 2 - 4);
         ctx.font = '11px sans-serif';
-        ctx.fillText('3 x 4 cm', canvasX + canvasW / 2, canvasY + canvasH / 2 + 12);
-        ctx.restore();
+        ctx.textAlign = 'center';
+        ctx.fillText('PASFOTO 3x4', photoX + photoW / 2, photoY + photoH / 2);
       }
 
-      // Update info navigasi
+      // 2. Render Cap Sekolah (di bawah anchor "Kepala Sekolah")
+      if (stampDataUrl) {
+        const sW = Number(stampWidthInput.value);
+        const sH = sW * 0.85; // Proporsi estimasi cap lingkaran/oval
+        const sX = (student.anchorX + Number(stampOffsetXInput.value)) * scale;
+        const sY = (unscaledViewport.height - student.anchorY - sH + Number(stampOffsetYInput.value)) * scale;
+
+        const stampImg = new Image();
+        stampImg.src = stampDataUrl;
+        await new Promise(res => { stampImg.onload = res; });
+        ctx.drawImage(stampImg, sX, sY, sW * scale, sH * scale);
+      }
+
+      // 3. Render Tanda Tangan Kepala Sekolah
+      if (signatureDataUrl) {
+        const sigW = Number(sigWidthInput.value);
+        const sigH = sigW * 0.45; // Proporsi tanda tangan
+        const sigX = (student.anchorX + Number(sigOffsetXInput.value)) * scale;
+        const sigY = (unscaledViewport.height - student.anchorY - sigH + Number(sigOffsetYInput.value)) * scale;
+
+        const sigImg = new Image();
+        sigImg.src = signatureDataUrl;
+        await new Promise(res => { sigImg.onload = res; });
+        ctx.drawImage(sigImg, sigX, sigY, sigW * scale, sigH * scale);
+      }
+
       previewTitle.textContent = `Halaman ${pageNum} dari ${pdfJsDoc.numPages} — ${student.name}`;
-      anchorStatus.textContent = student.detected
-        ? `Teks "Kepala Sekolah" terdeteksi otomatis pada koordinat X:${Math.round(student.anchorX)}, Y:${Math.round(student.anchorY)}`
-        : 'Teks "Kepala Sekolah" tidak terbaca, menggunakan posisi default.';
+      anchorStatus.textContent = student.detected ? 'Posisi TTD Kepala Sekolah terdeteksi presisi.' : 'Menggunakan posisi default.';
 
       prevPageBtn.disabled = pageNum <= 1;
       nextPageBtn.disabled = pageNum >= pdfJsDoc.numPages;
@@ -785,74 +771,100 @@
       }
     });
 
-    // Helper: Konversi gambar apa saja (JPG/PNG/WebP) ke JPEG standar untuk pdf-lib
-    async function convertImageToJpegBytes(dataUrl) {
-      const img = new Image();
-      img.src = dataUrl;
-      await new Promise(res => { img.onload = res; });
-
-      const tempCanvas = document.createElement('canvas');
-      tempCanvas.width = img.width;
-      tempCanvas.height = img.height;
-      const tCtx = tempCanvas.getContext('2d');
-      tCtx.fillStyle = '#ffffff';
-      tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-      tCtx.drawImage(img, 0, 0);
-
-      const jpegDataUrl = tempCanvas.toDataURL('image/jpeg', 0.95);
-      const base64 = jpegDataUrl.split(',')[1];
-      const binary = atob(base64);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-      }
-      return bytes;
+    async function urlToBytes(dataUrl) {
+      const res = await fetch(dataUrl);
+      return await res.arrayBuffer();
     }
 
-    // 4. Generate & Unduh PDF Final Beresolusi Asli
+    // Unduh PDF Final
     downloadPdfBtn.addEventListener('click', async () => {
       if (!rawPdfBytes) return;
 
       downloadPdfBtn.disabled = true;
-      downloadPdfBtn.textContent = 'Memproses PDF...';
+      downloadPdfBtn.textContent = 'Memproses Dokumen...';
 
       try {
         const { PDFDocument, rgb } = PDFLib;
         const pdfDoc = await PDFDocument.load(rawPdfBytes);
         const pages = pdfDoc.getPages();
 
-        const offX = Number(offsetXInput.value);
-        const offY = Number(offsetYInput.value);
-        const wPt = Number(photoWidthInput.value);
-        const hPt = Number(photoHeightInput.value);
-        const withBorder = drawBorderInput.checked;
+        let embeddedSig = null;
+        let embeddedStamp = null;
+
+        if (signatureDataUrl) {
+          const sigBytes = await urlToBytes(signatureDataUrl);
+          embeddedSig = signatureDataUrl.includes('image/png') 
+            ? await pdfDoc.embedPng(sigBytes) 
+            : await pdfDoc.embedJpg(sigBytes);
+        }
+
+        if (stampDataUrl) {
+          const stampBytes = await urlToBytes(stampDataUrl);
+          embeddedStamp = stampDataUrl.includes('image/png')
+            ? await pdfDoc.embedPng(stampBytes)
+            : await pdfDoc.embedJpg(stampBytes);
+        }
+
+        const sigOx = Number(sigOffsetXInput.value);
+        const sigOy = Number(sigOffsetYInput.value);
+        const sigW = Number(sigWidthInput.value);
+
+        const stOx = Number(stampOffsetXInput.value);
+        const stOy = Number(stampOffsetYInput.value);
+        const stW = Number(stampWidthInput.value);
+        const stH = stW * 0.85;
 
         for (let i = 0; i < studentsData.length; i++) {
           const student = studentsData[i];
-          if (!student.photoDataUrl) continue;
-
           const page = pages[student.pageIndex];
-          const jpegBytes = await convertImageToJpegBytes(student.photoDataUrl);
-          const embeddedImage = await pdfDoc.embedJpg(jpegBytes);
 
-          const x = student.anchorX + offX;
-          const y = student.anchorY + offY;
+          // 1. Tempel Foto jika ada
+          if (student.photoDataUrl) {
+            const photoBytes = await urlToBytes(student.photoDataUrl);
+            const embeddedPhoto = student.photoDataUrl.includes('image/png')
+              ? await pdfDoc.embedPng(photoBytes)
+              : await pdfDoc.embedJpg(photoBytes);
 
-          page.drawImage(embeddedImage, {
-            x: x,
-            y: y,
-            width: wPt,
-            height: hPt
-          });
-
-          if (withBorder) {
+            const px = student.anchorX - 125;
+            const py = student.anchorY - 113;
+            page.drawImage(embeddedPhoto, {
+              x: px,
+              y: py,
+              width: 85,
+              height: 113
+            });
             page.drawRectangle({
-              x: x,
-              y: y,
-              width: wPt,
-              height: hPt,
+              x: px,
+              y: py,
+              width: 85,
+              height: 113,
               borderColor: rgb(0.15, 0.15, 0.15),
               borderWidth: 0.75
+            });
+          }
+
+          // 2. Tempel Cap Sekolah
+          if (embeddedStamp) {
+            const sx = student.anchorX + stOx;
+            const sy = student.anchorY + stOy;
+            page.drawImage(embeddedStamp, {
+              x: sx,
+              y: sy,
+              width: stW,
+              height: stH
+            });
+          }
+
+          // 3. Tempel Tanda Tangan
+          if (embeddedSig) {
+            const sigH = sigW * 0.45;
+            const sigx = student.anchorX + sigOx;
+            const sigy = student.anchorY + sigOy;
+            page.drawImage(embeddedSig, {
+              x: sigx,
+              y: sigy,
+              width: sigW,
+              height: sigH
             });
           }
         }
@@ -863,22 +875,21 @@
 
         const a = document.createElement('a');
         a.href = url;
-        a.download = `TRANSKRIP_BERFOTO_${new Date().toISOString().slice(0,10)}.pdf`;
+        a.download = `TRANSKRIP_LENGKAP_SEKOLAH_${new Date().toISOString().slice(0,10)}.pdf`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       } catch (err) {
         console.error(err);
-        alert('Terjadi kesalahan saat memproses PDF: ' + err.message);
+        alert('Terjadi kesalahan: ' + err.message);
       } finally {
         downloadPdfBtn.disabled = false;
-        downloadPdfBtn.textContent = 'Unduh PDF Transkrip Lengkap';
+        downloadPdfBtn.textContent = 'Unduh PDF Transkrip Lengkap (TTD + Cap + Foto)';
       }
     });
 
-    // Inisialisasi awal
-    loadSavedSettings();
+    updateBadges();
   </script>
 </body>
 </html>
